@@ -1,4 +1,4 @@
-# Kirana Store PWA - Setup & Deployment
+# Manas Store PWA - Setup & Deployment
 
 ## 🚀 What's Fixed
 
@@ -240,10 +240,11 @@ Solution:
 
 ## 🎉 You're Ready!
 
-Your Kirana Store PWA is ready for production. Follow the 5-minute setup above and you'll be live in minutes!
+Your Manas Store PWA is ready for production. Follow the 5-minute setup above and you'll be live in minutes!
 
 ---
 
 **Last Updated**: July 2026
 **Version**: 1.0.0
 **Status**: Production Ready ✅
+

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kirana-store-v1'
+const CACHE_NAME = 'manas-store-v2'
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
@@ -31,6 +31,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') {
+    return
+  }
+
   // Skip cross-origin requests
   if (!event.request.url.includes(self.location.origin)) {
     return
@@ -53,7 +57,28 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // For other requests, try cache first, then network
+  // For page navigations, prefer fresh HTML and only fall back to cache offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const clonedResponse = response.clone()
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clonedResponse)
+            })
+          }
+          return response
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(event.request)
+          return cachedResponse || caches.match('/')
+        })
+    )
+    return
+  }
+
+  // For other same-origin assets, try cache first, then network.
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -80,3 +105,5 @@ self.addEventListener('message', (event) => {
     self.skipWaiting()
   }
 })
+
+

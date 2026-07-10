@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { products, purchases, sales } from '@/lib/db/schema'
-import { eq, and, gte, lte, sql } from 'drizzle-orm'
+import { eq, and, gte, lte, sql, desc } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 async function getUserId() {
@@ -19,8 +19,7 @@ async function getUserId() {
 
 export async function getDashboardStats() {
   try {
-    const userId = await getUserId()
-    // rest of function continues...
+    return await getDashboardStatsInner()
   } catch (error) {
     console.error('[v0] Dashboard stats error:', error)
     // Return default stats on error instead of throwing
@@ -172,5 +171,3 @@ export async function getProductProfitReport(productId: string) {
     currentStock: productData[0]?.current_stock || 0,
   }
 }
-
-import { desc } from 'drizzle-orm'

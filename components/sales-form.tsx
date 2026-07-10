@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getProducts, addSale } from '@/app/actions/products'
+import { useLanguage } from '@/components/language-provider'
+import LoadingScreen from '@/components/loading-screen'
 
 interface Product {
   id: string
@@ -13,6 +15,7 @@ interface Product {
 
 export default function SalesForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -45,19 +48,19 @@ export default function SalesForm() {
 
     try {
       if (!formData.productId) {
-        throw new Error('Please select a product')
+        throw new Error(t('sales.selectRequired'))
       }
 
       if (formData.quantity <= 0) {
-        throw new Error('Quantity must be greater than 0')
+        throw new Error(t('sales.quantityRequired'))
       }
 
       if (formData.sellingPrice <= 0) {
-        throw new Error('Selling price must be greater than 0')
+        throw new Error(t('sales.priceRequired'))
       }
 
       if (formData.quantity > (selectedProduct?.current_stock || 0)) {
-        throw new Error('Insufficient stock available')
+        throw new Error(t('sales.stockRequired'))
       }
 
       await addSale({
@@ -69,14 +72,16 @@ export default function SalesForm() {
 
       router.push('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to record sale')
+      setError(err instanceof Error ? err.message : t('sales.recordFailed'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="relative">
+      {loading && <LoadingScreen message="Recording sale..." />}
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
           {error}
@@ -84,7 +89,7 @@ export default function SalesForm() {
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">Product *</label>
+        <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.product')}</label>
         <select
           value={formData.productId}
           onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
@@ -110,7 +115,7 @@ export default function SalesForm() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Quantity *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.quantity')}</label>
           <input
             type="number"
             value={formData.quantity}
@@ -123,7 +128,7 @@ export default function SalesForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Price per Unit *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">{t('sales.pricePerUnit')}</label>
           <input
             type="number"
             step="0.01"
@@ -147,7 +152,7 @@ export default function SalesForm() {
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">Date</label>
+        <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.date')}</label>
         <input
           type="date"
           value={formData.saleDate}
@@ -162,16 +167,18 @@ export default function SalesForm() {
         disabled={loading}
         className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition-colors active:bg-green-800"
       >
-        {loading ? 'Recording...' : 'Record Sale'}
+        {loading ? t('sales.recording') : t('sales.recordButton')}
       </button>
 
       <button
         type="button"
         onClick={() => router.back()}
-        className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg transition-colors"
+        disabled={loading}
+        className="w-full mt-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-200 text-gray-900 font-medium py-3 px-4 rounded-lg transition-colors"
       >
         Cancel
       </button>
     </form>
+    </div>
   )
 }

@@ -42,12 +42,30 @@ export async function createProduct(data: {
     .returning()
   
   revalidatePath('/')
+  revalidatePath('/products')
+  return result[0]
+}
+
+export async function getProduct(id: string) {
+  const userId = await getUserId()
+  const result = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.userId, userId), eq(products.id, id)))
+    .limit(1)
+
   return result[0]
 }
 
 export async function updateProduct(
   id: string,
-  data: { name?: string; category?: string; unit?: string }
+  data: {
+    name?: string
+    category?: string
+    unit?: string
+    opening_stock?: number
+    current_stock?: number
+  }
 ) {
   const userId = await getUserId()
   const result = await db
@@ -57,6 +75,7 @@ export async function updateProduct(
     .returning()
   
   revalidatePath('/')
+  revalidatePath('/products')
   return result[0]
 }
 
@@ -64,6 +83,7 @@ export async function deleteProduct(id: string) {
   const userId = await getUserId()
   await db.delete(products).where(and(eq(products.id, id), eq(products.userId, userId)))
   revalidatePath('/')
+  revalidatePath('/products')
 }
 
 export async function addPurchase(data: {

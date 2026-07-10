@@ -1,4 +1,4 @@
-# Kirana Store PWA - Deployment Guide
+# Manas Store PWA - Deployment Guide
 
 ## Prerequisites
 
@@ -125,3 +125,4 @@ If you encounter issues:
 - All user data is scoped by user ID (no data leakage between users)
 - Offline support is built-in via Service Worker
 - The app is fully mobile-responsive and PWA-compatible
+

@@ -1,7 +1,7 @@
 {
-  "name": "Kirana Store - Inventory Management",
-  "short_name": "Kirana Store",
-  "description": "Smart inventory management for Kirana stores with offline support",
+  "name": "Manas Store - Inventory Management",
+  "short_name": "Manas Store",
+  "description": "Smart inventory management for Manas Store with offline support",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -64,3 +64,5 @@
     }
   ]
 }
+
+

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getProducts, addPurchase } from '@/app/actions/products'
+import { useLanguage } from '@/components/language-provider'
+import LoadingScreen from '@/components/loading-screen'
 
 interface Product {
   id: string
@@ -12,6 +14,7 @@ interface Product {
 
 export default function PurchasesForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -42,15 +45,15 @@ export default function PurchasesForm() {
 
     try {
       if (!formData.productId) {
-        throw new Error('Please select a product')
+        throw new Error(t('purchases.selectRequired'))
       }
 
       if (formData.quantity <= 0) {
-        throw new Error('Quantity must be greater than 0')
+        throw new Error(t('purchases.quantityRequired'))
       }
 
       if (formData.cost <= 0) {
-        throw new Error('Cost must be greater than 0')
+        throw new Error(t('purchases.costRequired'))
       }
 
       await addPurchase({
@@ -62,14 +65,16 @@ export default function PurchasesForm() {
 
       router.push('/')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to record purchase')
+      setError(err instanceof Error ? err.message : t('purchases.recordFailed'))
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="relative">
+      {loading && <LoadingScreen message="Recording purchase..." />}
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
       {error && (
         <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
           {error}
@@ -77,7 +82,7 @@ export default function PurchasesForm() {
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">Product *</label>
+        <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.product')}</label>
         <select
           value={formData.productId}
           onChange={(e) => setFormData({ ...formData, productId: e.target.value })}
@@ -95,7 +100,7 @@ export default function PurchasesForm() {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Quantity *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.quantity')}</label>
           <input
             type="number"
             value={formData.quantity}
@@ -108,7 +113,7 @@ export default function PurchasesForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Cost per Unit *</label>
+          <label className="block text-sm font-medium text-gray-900 mb-2">{t('purchases.costPerUnit')}</label>
           <input
             type="number"
             step="0.01"
@@ -132,7 +137,7 @@ export default function PurchasesForm() {
       )}
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">Date</label>
+        <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.date')}</label>
         <input
           type="date"
           value={formData.purchaseDate}
@@ -147,16 +152,18 @@ export default function PurchasesForm() {
         disabled={loading}
         className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition-colors active:bg-green-800"
       >
-        {loading ? 'Recording...' : 'Record Purchase'}
+        {loading ? t('purchases.recording') : t('purchases.recordButton')}
       </button>
 
       <button
         type="button"
         onClick={() => router.back()}
-        className="w-full mt-2 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 px-4 rounded-lg transition-colors"
+        disabled={loading}
+        className="w-full mt-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-200 text-gray-900 font-medium py-3 px-4 rounded-lg transition-colors"
       >
         Cancel
       </button>
     </form>
+    </div>
   )
 }

@@ -73,7 +73,7 @@ openssl rand -base64 32
 
 ### Verify Fix
 1. After redeployment, check the Vercel logs
-2. You should see: "[Kirana Store] All environment variables are configured correctly"
+2. You should see: "[Manas Store] All environment variables are configured correctly"
 3. The application should load without 500 errors
 
 ## Affected Routes
@@ -120,3 +120,4 @@ To prevent similar issues in the future:
 - Missing DATABASE_URL will cause connection errors when trying to access user data
 - All errors are logged to the Vercel deployment console for debugging
 - The app gracefully handles missing env vars by showing helpful error pages
+

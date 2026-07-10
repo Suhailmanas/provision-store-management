@@ -1,4 +1,4 @@
-# Kirana Store PWA - Quick Start Guide
+# Manas Store PWA - Quick Start Guide
 
 ## For Developers
 
@@ -82,7 +82,7 @@ After deployment completes:
 
 ```
 ┌─────────────────────────────────────┐
-│     Kirana Store PWA               │
+│     Manas Store PWA               │
 ├─────────────────────────────────────┤
 │                                     │
 │  Frontend (Next.js App Router)      │
@@ -196,3 +196,4 @@ lib/
 ---
 
 **Need help?** Check DEPLOYMENT.md for detailed setup instructions or PRODUCTION_FIXES.md for troubleshooting.
+

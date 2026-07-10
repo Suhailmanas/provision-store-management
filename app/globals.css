@@ -58,6 +58,8 @@
 
 :root {
   color-scheme: light;
+  --font-inter: 'Inter', 'Segoe UI', sans-serif;
+  --font-poppins: 'Poppins', 'Segoe UI', sans-serif;
   --background: #F8FAFC;
   --foreground: #0F172A;
   --card: #FFFFFF;

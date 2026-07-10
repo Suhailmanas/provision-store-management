@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useLanguage } from '@/components/language-provider'
 
 export default function Navigation() {
   const pathname = usePathname()
+  const { t } = useLanguage()
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/')
 
@@ -20,7 +22,7 @@ export default function Navigation() {
           }`}
         >
           <span className="text-2xl mb-1">📊</span>
-          <span className="text-xs font-medium">Dashboard</span>
+          <span className="text-xs font-medium">{t('nav.dashboard')}</span>
         </Link>
 
         <Link
@@ -32,7 +34,7 @@ export default function Navigation() {
           }`}
         >
           <span className="text-2xl mb-1">📦</span>
-          <span className="text-xs font-medium">Products</span>
+          <span className="text-xs font-medium">{t('nav.products')}</span>
         </Link>
 
         <Link
@@ -40,7 +42,7 @@ export default function Navigation() {
           className="flex-1 flex flex-col items-center justify-center py-3 px-2 text-center transition-colors"
         >
           <span className="text-3xl mb-1">➕</span>
-          <span className="text-xs font-medium text-[#DC2626]">Add Sale</span>
+          <span className="text-xs font-medium text-[#DC2626]">{t('nav.addSale')}</span>
         </Link>
 
         <Link
@@ -52,7 +54,7 @@ export default function Navigation() {
           }`}
         >
           <span className="text-2xl mb-1">📥</span>
-          <span className="text-xs font-medium">Purchases</span>
+          <span className="text-xs font-medium">{t('nav.purchases')}</span>
         </Link>
 
         <Link
@@ -64,7 +66,7 @@ export default function Navigation() {
           }`}
         >
           <span className="text-2xl mb-1">📈</span>
-          <span className="text-xs font-medium">Reports</span>
+          <span className="text-xs font-medium">{t('nav.reports')}</span>
         </Link>
       </div>
     </nav>

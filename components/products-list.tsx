@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getProducts, deleteProduct } from '@/app/actions/products'
+import { useLanguage } from '@/components/language-provider'
 
 interface Product {
   id: string
@@ -14,6 +15,7 @@ interface Product {
 }
 
 export default function ProductsList() {
+  const { t } = useLanguage()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,14 +37,14 @@ export default function ProductsList() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Are you sure you want to delete this product?')) return
+    if (!confirm(t('products.deleteConfirm'))) return
 
     try {
       await deleteProduct(id)
       setProducts(products.filter((p) => p.id !== id))
     } catch (error) {
       console.error('Error deleting product:', error)
-      alert('Failed to delete product')
+      alert(t('products.deleteFailed'))
     }
   }
 
@@ -53,6 +55,27 @@ export default function ProductsList() {
   const lowStockProducts = filteredProducts.filter((p) => p.current_stock < 10)
   const normalProducts = filteredProducts.filter((p) => p.current_stock >= 10)
 
+  function ProductActions({ productId }: { productId: string }) {
+    return (
+      <div className="flex shrink-0 gap-2">
+        <Link
+          href={`/products/${productId}`}
+          className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+          title={t('products.edit')}
+        >
+          {t('products.edit')}
+        </Link>
+        <button
+          onClick={() => handleDelete(productId)}
+          className="rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
+          title={t('products.delete')}
+        >
+          {t('products.delete')}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div>
       {/* Add Product Button */}
@@ -60,13 +83,13 @@ export default function ProductsList() {
         href="/products/new"
         className="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg mb-4 text-center transition-colors active:bg-green-800"
       >
-        + Add New Product
+        {t('products.addNew')}
       </Link>
 
       {/* Search */}
       <input
         type="text"
-        placeholder="Search products..."
+        placeholder={t('common.search')}
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -80,9 +103,9 @@ export default function ProductsList() {
         </div>
       ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">No products found</p>
+          <p className="text-gray-500 text-lg">{t('products.noProducts')}</p>
           <Link href="/products/new" className="text-green-600 font-medium mt-2 block">
-            Create your first product
+            {t('products.createFirst')}
           </Link>
         </div>
       ) : (
@@ -90,25 +113,25 @@ export default function ProductsList() {
           {/* Low Stock Alert */}
           {lowStockProducts.length > 0 && (
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-orange-900 mb-3">Low Stock Alert ({lowStockProducts.length})</h3>
+              <h3 className="font-bold text-orange-900 mb-3">
+                {t('products.lowStock', { count: lowStockProducts.length })}
+              </h3>
               <div className="space-y-2">
                 {lowStockProducts.map((product) => (
                   <div
                     key={product.id}
-                    className="bg-white p-3 rounded border border-orange-100 flex justify-between items-center"
+                    className="bg-white p-3 rounded border border-orange-100 flex justify-between items-center gap-3"
                   >
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-orange-600">
-                        Stock: {product.current_stock} {product.unit}
+                      {product.category && (
+                        <p className="text-xs text-gray-500 mt-1">{product.category}</p>
+                      )}
+                      <p className="text-sm text-orange-600 mt-1">
+                        {t('products.stock')}: {product.current_stock} {product.unit}
                       </p>
                     </div>
-                    <Link
-                      href={`/products/${product.id}`}
-                      className="ml-2 text-green-600 font-medium"
-                    >
-                      →
-                    </Link>
+                    <ProductActions productId={product.id} />
                   </div>
                 ))}
               </div>
@@ -119,7 +142,7 @@ export default function ProductsList() {
           {normalProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-start"
+              className="bg-white border border-gray-200 rounded-lg p-4 flex justify-between items-start gap-3"
             >
               <div className="flex-1">
                 <p className="font-bold text-gray-900">{product.name}</p>
@@ -128,27 +151,12 @@ export default function ProductsList() {
                 )}
                 <div className="mt-2 flex gap-4 text-sm">
                   <span className="text-gray-600">
-                    Stock: <span className="font-bold text-green-600">{product.current_stock}</span>
+                    {t('products.stock')}: <span className="font-bold text-green-600">{product.current_stock}</span>
                   </span>
                   <span className="text-gray-600">{product.unit}</span>
                 </div>
               </div>
-              <div className="flex gap-2 ml-2">
-                <Link
-                  href={`/products/${product.id}`}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded"
-                  title="Edit"
-                >
-                  ✏️
-                </Link>
-                <button
-                  onClick={() => handleDelete(product.id)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded"
-                  title="Delete"
-                >
-                  🗑️
-                </button>
-              </div>
+              <ProductActions productId={product.id} />
             </div>
           ))}
         </div>

@@ -1,6 +1,6 @@
 // IndexedDB utilities for offline support
 
-const DB_NAME = 'kirana-store-db'
+const DB_NAME = 'manas-store-db'
 const DB_VERSION = 1
 
 export interface SyncItem {
@@ -163,3 +163,5 @@ export function onOffline(callback: () => void) {
   window.addEventListener('offline', callback)
   return () => window.removeEventListener('offline', callback)
 }
+
+

@@ -1,12 +1,18 @@
-import { betterAuth } from 'better-auth'
-import { pool } from '@/lib/db'
+import { betterAuth } from 'better-auth/minimal'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { db } from '@/lib/db'
+import * as schema from '@/lib/db/schema'
 
 // Use a placeholder secret during build if BETTER_AUTH_SECRET is not set
 const SECRET = process.env.BETTER_AUTH_SECRET || 'placeholder-secret-for-build'
 
 export const auth = betterAuth({
   secret: SECRET,
-  database: pool,
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema,
+    camelCase: true,
+  }),
   baseURL:
     process.env.BETTER_AUTH_URL ??
     (process.env.VERCEL_PROJECT_PRODUCTION_URL

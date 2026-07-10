@@ -17,7 +17,7 @@ export function validateEnvironment() {
   }
 
   if (errors.length > 0) {
-    console.error('[Kirana Store] Environment validation failed:')
+    console.error('[Manas Store] Environment validation failed:')
     errors.forEach((error) => {
       console.error(`  - ${error}`)
     })
@@ -29,3 +29,4 @@ export function validateEnvironment() {
 
   return errors.length === 0
 }
+
