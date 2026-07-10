@@ -8,13 +8,13 @@ interface StatCardProps {
 
 export default function StatCard({ label, value, icon, color, loading }: StatCardProps) {
   return (
-    <div className={`${color} rounded-lg p-4`}>
+    <div className={`${color} rounded-[12px] p-4 border border-border bg-card`}>
       <div className="text-3xl mb-2">{icon}</div>
-      <p className="text-xs font-medium opacity-75">{label}</p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
       {loading ? (
-        <div className="h-8 bg-gray-200 rounded animate-pulse mt-1"></div>
+        <div className="h-8 bg-muted rounded-md animate-pulse mt-1"></div>
       ) : (
-        <p className="text-2xl font-bold mt-1">{value}</p>
+        <p className="text-2xl font-poppins font-semibold mt-1 text-foreground">{value}</p>
       )}
     </div>
   )

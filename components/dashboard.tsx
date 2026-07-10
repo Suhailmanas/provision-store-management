@@ -33,12 +33,12 @@ export default function Dashboard() {
   }, [])
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-background">
       <div className="flex-1 pb-24">
         {/* Header */}
-        <div className="bg-green-600 text-white px-4 py-6">
-          <h1 className="text-3xl font-bold">Kirana Store</h1>
-          <p className="text-green-100 mt-1">Inventory Management</p>
+        <div className="bg-[#2563EB] text-white px-4 py-6">
+          <h1 className="text-3xl font-poppins font-bold">Kirana Store</h1>
+          <p className="text-blue-100 mt-1 text-sm">Inventory Management</p>
         </div>
 
         {/* Main Content */}
@@ -49,28 +49,28 @@ export default function Dashboard() {
               label="Products"
               value={stats.totalProducts}
               icon="📦"
-              color="bg-blue-50 text-blue-700"
+              color=""
               loading={loading}
             />
             <StatCard
               label="Total Stock"
               value={stats.totalInventoryItems}
               icon="📊"
-              color="bg-purple-50 text-purple-700"
+              color=""
               loading={loading}
             />
             <StatCard
               label="Today&apos;s Sales"
               value={stats.todaysSalesQuantity}
               icon="💰"
-              color="bg-green-50 text-green-700"
+              color=""
               loading={loading}
             />
             <StatCard
               label="Revenue"
               value={`₹${Math.round(stats.todaysSalesAmount)}`}
               icon="📈"
-              color="bg-orange-50 text-orange-700"
+              color=""
               loading={loading}
             />
           </div>

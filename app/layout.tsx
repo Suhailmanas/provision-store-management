@@ -1,7 +1,20 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { Poppins, Inter } from 'next/font/google'
 import './globals.css'
 import OfflineStatus from '@/components/offline-status'
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: 'Kirana Store - Inventory Management',
@@ -38,7 +51,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#10b981',
+  themeColor: '#2563EB',
   viewportFit: 'cover',
   width: 'device-width',
   initialScale: 1,
@@ -52,7 +65,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="bg-white">
+    <html lang="en" className={`${poppins.variable} ${inter.variable} bg-background`}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -60,7 +73,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Kirana Store" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className="antialiased bg-white text-gray-900">
+      <body className="antialiased bg-background text-foreground font-inter">
         <OfflineStatus />
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
