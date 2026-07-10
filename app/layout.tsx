@@ -3,6 +3,12 @@ import type { Metadata, Viewport } from 'next'
 import { Poppins, Inter } from 'next/font/google'
 import './globals.css'
 import OfflineStatus from '@/components/offline-status'
+import { validateEnvironment } from '@/lib/validate-env'
+
+// Validate environment at runtime
+if (typeof window === 'undefined') {
+  validateEnvironment()
+}
 
 const poppins = Poppins({
   subsets: ['latin'],

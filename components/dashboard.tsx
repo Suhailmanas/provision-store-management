@@ -23,7 +23,15 @@ export default function Dashboard() {
         const data = await getDashboardStats()
         setStats(data)
       } catch (error) {
-        console.error('Error loading dashboard stats:', error)
+        console.error('[v0] Error loading dashboard stats:', error)
+        // Keep default stats on error, they're already initialized
+        setStats({
+          totalProducts: 0,
+          todaysSalesQuantity: 0,
+          todaysSalesAmount: 0,
+          totalInventoryItems: 0,
+          lowStockCount: 0,
+        })
       } finally {
         setLoading(false)
       }

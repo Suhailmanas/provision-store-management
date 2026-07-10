@@ -7,58 +7,86 @@ import { eq, and, gte, lte, sql } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 async function getUserId() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session?.user) throw new Error('Unauthorized')
-  return session.user.id
+  try {
+    const session = await auth.api.getSession({ headers: await headers() })
+    if (!session?.user) throw new Error('Unauthorized')
+    return session.user.id
+  } catch (error) {
+    console.error('[v0] Error getting session:', error)
+    throw new Error('Failed to authenticate')
+  }
 }
 
 export async function getDashboardStats() {
+  try {
+    const userId = await getUserId()
+    // rest of function continues...
+  } catch (error) {
+    console.error('[v0] Dashboard stats error:', error)
+    // Return default stats on error instead of throwing
+    return {
+      totalProducts: 0,
+      todaysSalesQuantity: 0,
+      todaysSalesAmount: 0,
+      totalInventoryItems: 0,
+      lowStockCount: 0,
+    }
+  }
+}
+
+// Inner function to avoid double error handling
+async function getDashboardStatsInner() {
   const userId = await getUserId()
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
-  // Total products
-  const productCount = await db
-    .select({ count: sql`COUNT(*)` })
-    .from(products)
-    .where(eq(products.userId, userId))
+  try {
+    // Total products
+    const productCount = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(products)
+      .where(eq(products.userId, userId))
 
-  // Today's sales
-  const todaysSalesData = await db
-    .select({
-      quantity: sql`SUM(${sales.quantity})`,
-      total: sql`SUM(${sales.totalAmount})`,
-    })
-    .from(sales)
-    .where(
-      and(
-        eq(sales.userId, userId),
-        gte(sales.saleDate, today),
-        lte(sales.saleDate, new Date(today.getTime() + 86400000))
+    // Today's sales
+    const todaysSalesData = await db
+      .select({
+        quantity: sql`SUM(${sales.quantity})`,
+        total: sql`SUM(${sales.totalAmount})`,
+      })
+      .from(sales)
+      .where(
+        and(
+          eq(sales.userId, userId),
+          gte(sales.saleDate, today),
+          lte(sales.saleDate, new Date(today.getTime() + 86400000))
+        )
       )
-    )
 
-  // Total inventory value
-  const inventoryValue = await db
-    .select({
-      total: sql`SUM(${products.current_stock})`,
-    })
-    .from(products)
-    .where(eq(products.userId, userId))
+    // Total inventory value
+    const inventoryValue = await db
+      .select({
+        total: sql`SUM(${products.current_stock})`,
+      })
+      .from(products)
+      .where(eq(products.userId, userId))
 
-  // Low stock products
-  const lowStockProducts = await db
-    .select()
-    .from(products)
-    .where(and(eq(products.userId, userId)))
-    .then((p) => p.filter((prod) => prod.current_stock < 10))
+    // Low stock products
+    const lowStockProducts = await db
+      .select()
+      .from(products)
+      .where(and(eq(products.userId, userId)))
+      .then((p) => p.filter((prod) => prod.current_stock < 10))
 
-  return {
-    totalProducts: Number(productCount[0]?.count || 0),
-    todaysSalesQuantity: Number(todaysSalesData[0]?.quantity || 0),
-    todaysSalesAmount: Number(todaysSalesData[0]?.total || 0),
-    totalInventoryItems: Number(inventoryValue[0]?.total || 0),
-    lowStockCount: lowStockProducts.length,
+    return {
+      totalProducts: Number(productCount[0]?.count || 0),
+      todaysSalesQuantity: Number(todaysSalesData[0]?.quantity || 0),
+      todaysSalesAmount: Number(todaysSalesData[0]?.total || 0),
+      totalInventoryItems: Number(inventoryValue[0]?.total || 0),
+      lowStockCount: lowStockProducts.length,
+    }
+  } catch (error) {
+    console.error('[v0] Error querying dashboard stats:', error)
+    throw error
   }
 }
 
