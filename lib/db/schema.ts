@@ -70,6 +70,12 @@ export const products = pgTable('products', {
   name: text('name').notNull(),
   category: text('category'),
   unit: text('unit').notNull(),
+  buyingPrice: decimal('buyingprice', { precision: 10, scale: 2 }).notNull().default('0'),
+  sellingPrice: decimal('sellingprice', { precision: 10, scale: 2 }).notNull().default('0'),
+  minimumStock: integer('minimumstock').notNull().default(5),
+  fastMoving: boolean('fastmoving').notNull().default(false),
+  expiryTracking: boolean('expirytracking').notNull().default(false),
+  active: boolean('active').notNull().default(true),
   opening_stock: integer('opening_stock').notNull().default(0),
   current_stock: integer('current_stock').notNull().default(0),
   createdAt: timestamp('createdat').notNull().defaultNow(),
@@ -118,5 +124,27 @@ export const inventoryLog = pgTable('inventory_log', {
   reference_id: text('reference_id'),
   reference_type: text('reference_type'),
   createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+export const productPriceHistory = pgTable('product_price_history', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  productId: text('productid').notNull(),
+  buyingPrice: decimal('buyingprice', { precision: 10, scale: 2 }).notNull(),
+  sellingPrice: decimal('sellingprice', { precision: 10, scale: 2 }).notNull(),
+  changedAt: timestamp('changedat').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+export const productExpiry = pgTable('product_expiry', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  productId: text('productid').notNull(),
+  batchNumber: text('batchnumber').notNull(),
+  quantity: integer('quantity').notNull(),
+  expiryDate: date('expirydate').notNull(),
+  purchaseDate: date('purchasedate').notNull(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 

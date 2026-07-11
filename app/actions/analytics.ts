@@ -2,8 +2,8 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { products, purchases, sales } from '@/lib/db/schema'
-import { eq, and, gte, lte, sql, desc } from 'drizzle-orm'
+import { products, purchases, sales, dailyClose } from '@/lib/db/schema'
+import { eq, and, gte, lte, sql, desc, sum } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
 async function getUserId() {
@@ -170,4 +170,145 @@ export async function getProductProfitReport(productId: string) {
     totalRevenue: Number(salesData[0]?.totalRevenue || 0),
     currentStock: productData[0]?.current_stock || 0,
   }
+}
+
+export async function getTodaysSales() {
+  const userId = await getUserId()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  try {
+    const result = await db
+      .select({
+        totalAmount: sum(sales.totalAmount),
+        quantity: sum(sales.quantity),
+        count: sql`count(*)`,
+      })
+      .from(sales)
+      .where(and(
+        eq(sales.userId, userId),
+        gte(sales.saleDate, today),
+        lte(sales.saleDate, tomorrow)
+      ))
+
+    return {
+      totalAmount: parseFloat(result[0]?.totalAmount || '0'),
+      quantity: result[0]?.quantity || 0,
+      count: result[0]?.count ? parseInt(result[0].count.toString()) : 0,
+    }
+  } catch (error) {
+    console.error('[v0] Error in getTodaysSales:', error)
+    return { totalAmount: 0, quantity: 0, count: 0 }
+  }
+}
+
+export async function getTodaysPurchases() {
+  const userId = await getUserId()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
+  try {
+    const result = await db
+      .select({
+        totalCost: sum(purchases.cost),
+        quantity: sum(purchases.quantity),
+        count: sql`count(*)`,
+      })
+      .from(purchases)
+      .where(and(
+        eq(purchases.userId, userId),
+        gte(purchases.purchaseDate, today),
+        lte(purchases.purchaseDate, tomorrow)
+      ))
+
+    return {
+      totalCost: parseFloat(result[0]?.totalCost || '0'),
+      quantity: result[0]?.quantity || 0,
+      count: result[0]?.count ? parseInt(result[0].count.toString()) : 0,
+    }
+  } catch (error) {
+    console.error('[v0] Error in getTodaysPurchases:', error)
+    return { totalCost: 0, quantity: 0, count: 0 }
+  }
+}
+
+export async function getMonthlyAnalytics(year: number, month: number) {
+  const userId = await getUserId()
+  const startDate = new Date(year, month - 1, 1)
+  const endDate = new Date(year, month, 1)
+
+  const monthlySales = await db
+    .select({
+      totalAmount: sum(sales.totalAmount),
+      quantity: sum(sales.quantity),
+    })
+    .from(sales)
+    .where(and(
+      eq(sales.userId, userId),
+      gte(sales.saleDate, startDate),
+      lte(sales.saleDate, endDate)
+    ))
+
+  const monthlyPurchases = await db
+    .select({
+      totalCost: sum(purchases.cost),
+      quantity: sum(purchases.quantity),
+    })
+    .from(purchases)
+    .where(and(
+      eq(purchases.userId, userId),
+      gte(purchases.purchaseDate, startDate),
+      lte(purchases.purchaseDate, endDate)
+    ))
+
+  return {
+    sales: {
+      totalAmount: parseFloat(monthlySales[0]?.totalAmount || '0'),
+      quantity: monthlySales[0]?.quantity || 0,
+    },
+    purchases: {
+      totalCost: parseFloat(monthlyPurchases[0]?.totalCost || '0'),
+      quantity: monthlyPurchases[0]?.quantity || 0,
+    },
+    profit: parseFloat(monthlySales[0]?.totalAmount || '0') - parseFloat(monthlyPurchases[0]?.totalCost || '0'),
+  }
+}
+
+export async function getOpeningStock(productId: string) {
+  const userId = await getUserId()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // Get yesterday's closing stock
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const yesterdayClose = await db
+    .select()
+    .from(dailyClose)
+    .where(and(
+      eq(dailyClose.userId, userId),
+      eq(dailyClose.productId, productId),
+      eq(dailyClose.date, yesterday)
+    ))
+    .limit(1)
+
+  if (yesterdayClose[0]) {
+    return yesterdayClose[0].closing_stock
+  }
+
+  // If no yesterday close, return product opening stock
+  const product = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.id, productId), eq(products.userId, userId)))
+    .limit(1)
+
+  return product[0]?.opening_stock || 0
 }

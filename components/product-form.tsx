@@ -14,6 +14,12 @@ interface ProductFormProps {
     unit: string
     opening_stock: number
     current_stock: number
+    buyingPrice?: number
+    sellingPrice?: number
+    minimumStock?: number
+    fastMoving?: boolean
+    expiryTracking?: boolean
+    active?: boolean
   }
 }
 
@@ -28,6 +34,12 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
     unit: product?.unit ?? 'pieces',
     opening_stock: product?.opening_stock ?? 0,
     current_stock: product?.current_stock ?? 0,
+    buyingPrice: product?.buyingPrice ?? 0,
+    sellingPrice: product?.sellingPrice ?? 0,
+    minimumStock: product?.minimumStock ?? 5,
+    fastMoving: product?.fastMoving ?? false,
+    expiryTracking: product?.expiryTracking ?? false,
+    active: product?.active ?? true,
   })
 
   useEffect(() => {
@@ -38,6 +50,12 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
         unit: product.unit,
         opening_stock: product.opening_stock,
         current_stock: product.current_stock,
+        buyingPrice: product.buyingPrice ?? 0,
+        sellingPrice: product.sellingPrice ?? 0,
+        minimumStock: product.minimumStock ?? 5,
+        fastMoving: product.fastMoving ?? false,
+        expiryTracking: product.expiryTracking ?? false,
+        active: product.active ?? true,
       })
     }
   }, [product])
@@ -56,6 +74,14 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
         throw new Error(t('products.unitRequired'))
       }
 
+      if (formData.buyingPrice < 0) {
+        throw new Error('Buying price cannot be negative')
+      }
+
+      if (formData.sellingPrice < 0) {
+        throw new Error('Selling price cannot be negative')
+      }
+
       if (productId) {
         await updateProduct(productId, {
           name: formData.name.trim(),
@@ -63,6 +89,12 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
           unit: formData.unit.trim(),
           opening_stock: Number(formData.opening_stock),
           current_stock: Number(formData.current_stock),
+          buyingPrice: Number(formData.buyingPrice),
+          sellingPrice: Number(formData.sellingPrice),
+          minimumStock: Number(formData.minimumStock),
+          fastMoving: formData.fastMoving,
+          expiryTracking: formData.expiryTracking,
+          active: formData.active,
         })
       } else {
         await createProduct({
@@ -70,6 +102,11 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
           category: formData.category.trim() || undefined,
           unit: formData.unit.trim(),
           opening_stock: parseInt(formData.opening_stock.toString()) || 0,
+          buyingPrice: Number(formData.buyingPrice),
+          sellingPrice: Number(formData.sellingPrice),
+          minimumStock: Number(formData.minimumStock),
+          fastMoving: formData.fastMoving,
+          expiryTracking: formData.expiryTracking,
         })
       }
 
@@ -166,6 +203,84 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
           min="0"
           disabled={loading}
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Buying Price (Rs)</label>
+          <input
+            type="number"
+            value={formData.buyingPrice}
+            onChange={(e) => setFormData({ ...formData, buyingPrice: parseFloat(e.target.value) || 0 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="0"
+            min="0"
+            step="0.01"
+            disabled={loading}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-900 mb-2">Selling Price (Rs)</label>
+          <input
+            type="number"
+            value={formData.sellingPrice}
+            onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="0"
+            min="0"
+            step="0.01"
+            disabled={loading}
+          />
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-900 mb-2">Minimum Stock Level</label>
+        <input
+          type="number"
+          value={formData.minimumStock}
+          onChange={(e) => setFormData({ ...formData, minimumStock: parseInt(e.target.value) || 5 })}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="5"
+          min="1"
+          disabled={loading}
+        />
+      </div>
+
+      <div className="mb-4 space-y-3">
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.fastMoving}
+            onChange={(e) => setFormData({ ...formData, fastMoving: e.target.checked })}
+            className="w-4 h-4 rounded border-gray-300"
+            disabled={loading}
+          />
+          <span className="ml-2 text-sm font-medium text-gray-900">Fast Moving Product</span>
+        </label>
+
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.expiryTracking}
+            onChange={(e) => setFormData({ ...formData, expiryTracking: e.target.checked })}
+            className="w-4 h-4 rounded border-gray-300"
+            disabled={loading}
+          />
+          <span className="ml-2 text-sm font-medium text-gray-900">Track Expiry Dates</span>
+        </label>
+
+        <label className="flex items-center">
+          <input
+            type="checkbox"
+            checked={formData.active}
+            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+            className="w-4 h-4 rounded border-gray-300"
+            disabled={loading}
+          />
+          <span className="ml-2 text-sm font-medium text-gray-900">Active</span>
+        </label>
       </div>
 
       <button
