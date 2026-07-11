@@ -148,3 +148,103 @@ export const productExpiry = pgTable('product_expiry', {
   updatedAt: timestamp('updatedat').notNull().defaultNow(),
 })
 
+// --- New hierarchical structure: Categories -> Products -> Variants --------
+
+export const categories = pgTable('categories', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  color: text('color').default('#3B82F6'), // Default blue
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const newProducts = pgTable('new_products', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  categoryId: text('categoryid').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const productVariants = pgTable('product_variants', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  productId: text('productid').notNull(),
+  brand: text('brand'),
+  packSize: integer('packsize').notNull().default(1), // Quantity per pack
+  unit: text('unit').notNull(), // liter, kg, pieces, box, etc.
+  buyingPrice: decimal('buyingprice', { precision: 10, scale: 2 }).notNull().default('0'),
+  sellingPrice: decimal('sellingprice', { precision: 10, scale: 2 }).notNull().default('0'),
+  minimumStock: integer('minimumstock').notNull().default(5),
+  fastMoving: boolean('fastmoving').notNull().default(false),
+  expiryTracking: boolean('expirytracking').notNull().default(false),
+  opening_stock: integer('opening_stock').notNull().default(0),
+  current_stock: integer('current_stock').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+  updatedAt: timestamp('updatedat').notNull().defaultNow(),
+})
+
+export const productImages = pgTable('product_images', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  productId: text('productid').notNull(),
+  url: text('url').notNull(),
+  alt: text('alt'),
+  displayOrder: integer('displayorder').notNull().default(0),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+// Update transaction tables to use variant_id for new hierarchical structure
+// Keep old tables for backward compatibility during migration
+
+export const purchasesV2 = pgTable('purchases_v2', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  variantId: text('variantid').notNull(),
+  quantity: integer('quantity').notNull(),
+  cost: decimal('cost', { precision: 10, scale: 2 }).notNull(),
+  purchaseDate: timestamp('purchasedate').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+export const salesV2 = pgTable('sales_v2', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  variantId: text('variantid').notNull(),
+  quantity: integer('quantity').notNull(),
+  sellingPrice: decimal('sellingprice', { precision: 10, scale: 2 }).notNull(),
+  totalAmount: decimal('totalamount', { precision: 10, scale: 2 }).notNull(),
+  saleDate: timestamp('saledate').notNull().defaultNow(),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+export const dailyCloseV2 = pgTable('daily_close_v2', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  variantId: text('variantid').notNull(),
+  closing_stock: integer('closing_stock').notNull(),
+  date: date('date').notNull().defaultNow(),
+  notes: text('notes'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+
+export const inventoryLogV2 = pgTable('inventory_log_v2', {
+  id: text('id').primaryKey().default('gen_random_uuid()'),
+  userId: text('userid').notNull(),
+  variantId: text('variantid').notNull(),
+  transactionType: text('transactiontype').notNull(), // 'purchase', 'sale', 'adjustment'
+  quantityChange: integer('quantitychange').notNull(),
+  previousStock: integer('previousstock').notNull(),
+  newStock: integer('newstock').notNull(),
+  reference_id: text('reference_id'),
+  reference_type: text('reference_type'),
+  createdAt: timestamp('createdat').notNull().defaultNow(),
+})
+

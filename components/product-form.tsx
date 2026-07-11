@@ -1,64 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createProduct, updateProduct } from '@/app/actions/products'
-import { useLanguage } from '@/components/language-provider'
-import LoadingScreen from '@/components/loading-screen'
+import { createProduct } from '@/app/actions/new-products'
 
 interface ProductFormProps {
-  productId?: string
-  product?: {
-    name: string
-    category?: string
-    unit: string
-    opening_stock: number
-    current_stock: number
-    buyingPrice?: number
-    sellingPrice?: number
-    minimumStock?: number
-    fastMoving?: boolean
-    expiryTracking?: boolean
-    active?: boolean
-  }
+  categoryId: string
+  onSuccess?: () => void
 }
 
-export default function ProductForm({ productId, product }: ProductFormProps) {
+export default function ProductForm({ categoryId, onSuccess }: ProductFormProps) {
   const router = useRouter()
-  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
-    name: product?.name ?? '',
-    category: product?.category ?? '',
-    unit: product?.unit ?? 'pieces',
-    opening_stock: product?.opening_stock ?? 0,
-    current_stock: product?.current_stock ?? 0,
-    buyingPrice: product?.buyingPrice ?? 0,
-    sellingPrice: product?.sellingPrice ?? 0,
-    minimumStock: product?.minimumStock ?? 5,
-    fastMoving: product?.fastMoving ?? false,
-    expiryTracking: product?.expiryTracking ?? false,
-    active: product?.active ?? true,
+    name: '',
+    description: '',
   })
-
-  useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name,
-        category: product.category ?? '',
-        unit: product.unit,
-        opening_stock: product.opening_stock,
-        current_stock: product.current_stock,
-        buyingPrice: product.buyingPrice ?? 0,
-        sellingPrice: product.sellingPrice ?? 0,
-        minimumStock: product.minimumStock ?? 5,
-        fastMoving: product.fastMoving ?? false,
-        expiryTracking: product.expiryTracking ?? false,
-        active: product.active ?? true,
-      })
-    }
-  }, [product])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -67,241 +25,66 @@ export default function ProductForm({ productId, product }: ProductFormProps) {
 
     try {
       if (!formData.name.trim()) {
-        throw new Error(t('products.nameRequired'))
+        throw new Error('Product name is required')
       }
 
-      if (!formData.unit.trim()) {
-        throw new Error(t('products.unitRequired'))
-      }
+      await createProduct({
+        categoryId,
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+      })
 
-      if (formData.buyingPrice < 0) {
-        throw new Error('Buying price cannot be negative')
-      }
-
-      if (formData.sellingPrice < 0) {
-        throw new Error('Selling price cannot be negative')
-      }
-
-      if (productId) {
-        await updateProduct(productId, {
-          name: formData.name.trim(),
-          category: formData.category.trim() || undefined,
-          unit: formData.unit.trim(),
-          opening_stock: Number(formData.opening_stock),
-          current_stock: Number(formData.current_stock),
-          buyingPrice: Number(formData.buyingPrice),
-          sellingPrice: Number(formData.sellingPrice),
-          minimumStock: Number(formData.minimumStock),
-          fastMoving: formData.fastMoving,
-          expiryTracking: formData.expiryTracking,
-          active: formData.active,
-        })
-      } else {
-        await createProduct({
-          name: formData.name.trim(),
-          category: formData.category.trim() || undefined,
-          unit: formData.unit.trim(),
-          opening_stock: parseInt(formData.opening_stock.toString()) || 0,
-          buyingPrice: Number(formData.buyingPrice),
-          sellingPrice: Number(formData.sellingPrice),
-          minimumStock: Number(formData.minimumStock),
-          fastMoving: formData.fastMoving,
-          expiryTracking: formData.expiryTracking,
-        })
-      }
-
-      router.push('/products')
+      setFormData({ name: '', description: '' })
+      onSuccess?.()
+      router.refresh()
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : t(productId ? 'products.updateFailed' : 'products.createFailed')
-      )
+      setError(err instanceof Error ? err.message : 'Failed to create product')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="relative">
-      {loading && (
-        <LoadingScreen
-          message={t(productId ? 'products.updating' : 'products.creating')}
-        />
-      )}
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded">
+        <div className="p-3 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
           {error}
         </div>
       )}
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">{t('products.name')}</label>
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">Product Name</label>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          placeholder={t('products.namePlaceholder')}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="e.g., Whole Milk, Low Fat Milk"
           disabled={loading}
         />
       </div>
 
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">{t('products.category')}</label>
-        <input
-          type="text"
-          value={formData.category}
-          onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          placeholder={t('products.categoryPlaceholder')}
+      <div>
+        <label className="block text-sm font-medium text-gray-900 mb-1">Description</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Optional description"
+          rows={2}
           disabled={loading}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">{t('products.unit')}</label>
-          <select
-            value={formData.unit}
-            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            disabled={loading}
-          >
-            <option value="pieces">Pieces</option>
-            <option value="kg">Kg</option>
-            <option value="liter">Liter</option>
-            <option value="dozen">Dozen</option>
-            <option value="box">Box</option>
-            <option value="packet">Packet</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">{t('products.openingStock')}</label>
-          <input
-            type="number"
-            value={formData.opening_stock}
-            onChange={(e) => setFormData({ ...formData, opening_stock: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="0"
-            min="0"
-            disabled={loading}
-          />
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">{t('products.currentStock')}</label>
-        <input
-          type="number"
-          value={formData.current_stock}
-          onChange={(e) => setFormData({ ...formData, current_stock: parseInt(e.target.value) || 0 })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          placeholder="0"
-          min="0"
+      <div className="flex gap-2 pt-2">
+        <button
+          type="submit"
           disabled={loading}
-        />
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
+        >
+          {loading ? 'Creating...' : 'Add Product'}
+        </button>
       </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Buying Price (Rs)</label>
-          <input
-            type="number"
-            value={formData.buyingPrice}
-            onChange={(e) => setFormData({ ...formData, buyingPrice: parseFloat(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="0"
-            min="0"
-            step="0.01"
-            disabled={loading}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">Selling Price (Rs)</label>
-          <input
-            type="number"
-            value={formData.sellingPrice}
-            onChange={(e) => setFormData({ ...formData, sellingPrice: parseFloat(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            placeholder="0"
-            min="0"
-            step="0.01"
-            disabled={loading}
-          />
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-900 mb-2">Minimum Stock Level</label>
-        <input
-          type="number"
-          value={formData.minimumStock}
-          onChange={(e) => setFormData({ ...formData, minimumStock: parseInt(e.target.value) || 5 })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-          placeholder="5"
-          min="1"
-          disabled={loading}
-        />
-      </div>
-
-      <div className="mb-4 space-y-3">
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={formData.fastMoving}
-            onChange={(e) => setFormData({ ...formData, fastMoving: e.target.checked })}
-            className="w-4 h-4 rounded border-gray-300"
-            disabled={loading}
-          />
-          <span className="ml-2 text-sm font-medium text-gray-900">Fast Moving Product</span>
-        </label>
-
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={formData.expiryTracking}
-            onChange={(e) => setFormData({ ...formData, expiryTracking: e.target.checked })}
-            className="w-4 h-4 rounded border-gray-300"
-            disabled={loading}
-          />
-          <span className="ml-2 text-sm font-medium text-gray-900">Track Expiry Dates</span>
-        </label>
-
-        <label className="flex items-center">
-          <input
-            type="checkbox"
-            checked={formData.active}
-            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-            className="w-4 h-4 rounded border-gray-300"
-            disabled={loading}
-          />
-          <span className="ml-2 text-sm font-medium text-gray-900">Active</span>
-        </label>
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 px-4 rounded-lg transition-colors active:bg-green-800"
-      >
-        {loading
-          ? t(productId ? 'products.updating' : 'products.creating')
-          : t(productId ? 'products.updateButton' : 'products.createButton')}
-      </button>
-
-      <button
-        type="button"
-        onClick={() => router.push('/products')}
-        disabled={loading}
-        className="w-full mt-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-200 text-gray-900 font-medium py-3 px-4 rounded-lg transition-colors"
-      >
-        Cancel
-      </button>
     </form>
-    </div>
   )
 }
