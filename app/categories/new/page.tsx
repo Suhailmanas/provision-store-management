@@ -1,12 +1,13 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 import CategoryForm from '@/components/category-form'
 import Navigation from '@/components/navigation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function NewCategoryPage() {
-  const session = await auth.api.getSession()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/sign-in')
 
   return (

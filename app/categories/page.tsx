@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 import { getCategories } from '@/app/actions/categories'
 import CategoriesGrid from '@/components/categories-grid'
 import Navigation from '@/components/navigation'
@@ -7,7 +8,7 @@ import Navigation from '@/components/navigation'
 export const dynamic = 'force-dynamic'
 
 export default async function CategoriesPage() {
-  const session = await auth.api.getSession()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/sign-in')
 
   const categories = await getCategories()

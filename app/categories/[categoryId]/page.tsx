@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 import { getCategoryById } from '@/app/actions/categories'
 import { getProductsByCategory } from '@/app/actions/new-products'
 import CategoryDetail from '@/components/category-detail'
@@ -10,15 +11,16 @@ export const dynamic = 'force-dynamic'
 export default async function CategoryDetailPage({
   params,
 }: {
-  params: { categoryId: string }
+  params: Promise<{ categoryId: string }>
 }) {
-  const session = await auth.api.getSession()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect('/sign-in')
 
-  const category = await getCategoryById(params.categoryId)
+  const { categoryId } = await params
+  const category = await getCategoryById(categoryId)
   if (!category) redirect('/categories')
 
-  const products = await getProductsByCategory(params.categoryId)
+  const products = await getProductsByCategory(categoryId)
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
