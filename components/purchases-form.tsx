@@ -10,6 +10,8 @@ interface Product {
   id: string
   name: string
   unit: string
+  buyingPrice?: number
+  expiryTracking?: boolean
 }
 
 export default function PurchasesForm() {
@@ -18,11 +20,14 @@ export default function PurchasesForm() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [priceOverride, setPriceOverride] = useState(false)
   const [formData, setFormData] = useState({
     productId: '',
     quantity: 0,
     cost: 0,
     purchaseDate: new Date().toISOString().split('T')[0],
+    batchNumber: '',
+    expiryDate: '',
   })
 
   useEffect(() => {
@@ -37,6 +42,14 @@ export default function PurchasesForm() {
       console.error('Error loading products:', err)
     }
   }
+
+  const selectedProduct = products.find((p) => p.id === formData.productId)
+  
+  useEffect(() => {
+    if (selectedProduct && !priceOverride && selectedProduct.buyingPrice) {
+      setFormData(prev => ({ ...prev, cost: selectedProduct.buyingPrice || 0 }))
+    }
+  }, [selectedProduct, priceOverride])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -61,6 +74,8 @@ export default function PurchasesForm() {
         quantity: parseInt(formData.quantity.toString()),
         cost: parseFloat(formData.cost.toString()),
         purchaseDate: formData.purchaseDate,
+        batchNumber: formData.batchNumber || undefined,
+        expiryDate: formData.expiryDate || undefined,
       })
 
       router.push('/')
@@ -98,6 +113,18 @@ export default function PurchasesForm() {
         </select>
       </div>
 
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+        {selectedProduct && (
+          <>
+            <p className="text-sm text-blue-900">
+              {selectedProduct.buyingPrice && (
+                <>Master Price: Rs <span className="font-bold">{selectedProduct.buyingPrice}</span></>
+              )}
+            </p>
+          </>
+        )}
+      </div>
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <label className="block text-sm font-medium text-gray-900 mb-2">{t('common.quantity')}</label>
@@ -122,10 +149,52 @@ export default function PurchasesForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="0.00"
             min="0"
-            disabled={loading}
+            disabled={loading || !priceOverride}
           />
         </div>
       </div>
+
+      {selectedProduct?.buyingPrice && (
+        <div className="mb-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={priceOverride}
+              onChange={(e) => setPriceOverride(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+              disabled={loading}
+            />
+            <span className="ml-2 text-sm font-medium text-gray-900">Override Price</span>
+          </label>
+        </div>
+      )}
+
+      {selectedProduct?.expiryTracking && (
+        <>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-900 mb-2">Batch Number</label>
+            <input
+              type="text"
+              value={formData.batchNumber}
+              onChange={(e) => setFormData({ ...formData, batchNumber: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g., BATCH2025-01"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-900 mb-2">Expiry Date</label>
+            <input
+              type="date"
+              value={formData.expiryDate}
+              onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              disabled={loading}
+            />
+          </div>
+        </>
+      )}
 
       {formData.quantity > 0 && formData.cost > 0 && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">

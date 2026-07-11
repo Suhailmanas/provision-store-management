@@ -11,6 +11,7 @@ interface Product {
   name: string
   unit: string
   current_stock: number
+  sellingPrice?: number
 }
 
 export default function SalesForm() {
@@ -19,6 +20,7 @@ export default function SalesForm() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [priceOverride, setPriceOverride] = useState(false)
   const [formData, setFormData] = useState({
     productId: '',
     quantity: 0,
@@ -40,6 +42,12 @@ export default function SalesForm() {
   }
 
   const selectedProduct = products.find((p) => p.id === formData.productId)
+  
+  useEffect(() => {
+    if (selectedProduct && !priceOverride && selectedProduct.sellingPrice) {
+      setFormData(prev => ({ ...prev, sellingPrice: selectedProduct.sellingPrice || 0 }))
+    }
+  }, [selectedProduct, priceOverride])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -110,6 +118,11 @@ export default function SalesForm() {
           <p className="text-sm text-blue-900">
             Available: <span className="font-bold">{selectedProduct.current_stock} {selectedProduct.unit}</span>
           </p>
+          {selectedProduct.sellingPrice && (
+            <p className="text-sm text-blue-900 mt-1">
+              Master Price: Rs <span className="font-bold">{selectedProduct.sellingPrice}</span>
+            </p>
+          )}
         </div>
       )}
 
@@ -137,10 +150,25 @@ export default function SalesForm() {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="0.00"
             min="0"
-            disabled={loading}
+            disabled={loading || !priceOverride}
           />
         </div>
       </div>
+
+      {selectedProduct?.sellingPrice && (
+        <div className="mb-4">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              checked={priceOverride}
+              onChange={(e) => setPriceOverride(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300"
+              disabled={loading}
+            />
+            <span className="ml-2 text-sm font-medium text-gray-900">Override Price</span>
+          </label>
+        </div>
+      )}
 
       {formData.quantity > 0 && formData.sellingPrice > 0 && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
