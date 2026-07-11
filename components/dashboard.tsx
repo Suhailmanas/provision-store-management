@@ -77,28 +77,28 @@ export default function Dashboard() {
         <div className="px-4 py-6 max-w-4xl mx-auto space-y-6">
           {/* Today's Metrics */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-800">Today's Performance</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('dashboard.performance')}</h2>
             <div className="grid grid-cols-2 gap-4">
               <StatCard
-                label="Sales Amount"
+                label={t('dashboard.salesAmount')}
                 value={`Rs ${data.todaysSales.totalAmount.toFixed(0)}`}
                 icon="💰"
                 loading={loading}
               />
               <StatCard
-                label="Sales Count"
+                label={t('dashboard.salesCount')}
                 value={data.todaysSales.count}
                 icon="🛒"
                 loading={loading}
               />
               <StatCard
-                label="Purchase Amount"
+                label={t('dashboard.purchaseAmount')}
                 value={`Rs ${data.todaysPurchases.totalCost.toFixed(0)}`}
                 icon="📦"
                 loading={loading}
               />
               <StatCard
-                label="Purchase Count"
+                label={t('dashboard.purchaseCount')}
                 value={data.todaysPurchases.count}
                 icon="📥"
                 loading={loading}
@@ -108,18 +108,18 @@ export default function Dashboard() {
 
           {/* Monthly Summary */}
           <div>
-            <h2 className="text-lg font-semibold mb-3 text-gray-800">Monthly Summary</h2>
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('dashboard.monthlySummary')}</h2>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-sm text-gray-600">Sales</p>
+                <p className="text-sm text-gray-600">{t('dashboard.sales')}</p>
                 <p className="text-2xl font-bold text-green-600">Rs {data.monthlyData.sales.totalAmount.toFixed(0)}</p>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-sm text-gray-600">Purchases</p>
+                <p className="text-sm text-gray-600">{t('dashboard.purchases')}</p>
                 <p className="text-2xl font-bold text-blue-600">Rs {data.monthlyData.purchases.totalCost.toFixed(0)}</p>
               </div>
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <p className="text-sm text-gray-600">Profit</p>
+                <p className="text-sm text-gray-600">{t('dashboard.profit')}</p>
                 <p className={`text-2xl font-bold ${data.monthlyData.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   Rs {data.monthlyData.profit.toFixed(0)}
                 </p>
@@ -130,26 +130,26 @@ export default function Dashboard() {
           {/* Alerts */}
           {(data.lowStockProducts.length > 0 || data.expiryAlerts.length > 0) && (
             <div>
-              <h2 className="text-lg font-semibold mb-3 text-gray-800">Alerts</h2>
+              <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('dashboard.alerts')}</h2>
               {data.lowStockProducts.length > 0 && (
                 <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="font-semibold text-yellow-800 mb-2">Low Stock ({data.lowStockProducts.length})</p>
+                  <p className="font-semibold text-yellow-800 mb-2">{t('dashboard.lowStockCount', { count: data.lowStockProducts.length })}</p>
                   <ul className="text-sm text-yellow-700 space-y-1">
                     {data.lowStockProducts.slice(0, 5).map((p) => (
-                      <li key={p.productId}>{p.name}: {p.currentStock} (Rec: {p.recommendedStock})</li>
+                      <li key={p.variantId}>{p.name} — {p.variantName}: {p.currentStock} ({t('dashboard.recommendedStock', { value: p.minimumStock })})</li>
                     ))}
-                    {data.lowStockProducts.length > 5 && <li>...and {data.lowStockProducts.length - 5} more</li>}
+                    {data.lowStockProducts.length > 5 && <li>{t('dashboard.andMore', { count: data.lowStockProducts.length - 5 })}</li>}
                   </ul>
                 </div>
               )}
               {data.expiryAlerts.length > 0 && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="font-semibold text-red-800 mb-2">Expiry Alerts ({data.expiryAlerts.length})</p>
+                  <p className="font-semibold text-red-800 mb-2">{t('dashboard.expiryAlerts', { count: data.expiryAlerts.length })}</p>
                   <ul className="text-sm text-red-700 space-y-1">
                     {data.expiryAlerts.slice(0, 5).map((e) => (
-                      <li key={e.id}>{e.productName} ({e.batchNumber}): {e.daysUntilExpiry} days</li>
+                      <li key={e.id}>{e.productName} ({e.batchNumber}): {e.daysUntilExpiry} {t('common.days')}</li>
                     ))}
-                    {data.expiryAlerts.length > 5 && <li>...and {data.expiryAlerts.length - 5} more</li>}
+                    {data.expiryAlerts.length > 5 && <li>{t('dashboard.andMore', { count: data.expiryAlerts.length - 5 })}</li>}
                   </ul>
                 </div>
               )}
@@ -159,15 +159,15 @@ export default function Dashboard() {
           {/* Purchase Suggestions */}
           {data.purchaseSuggestions.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold mb-3 text-gray-800">Products to Buy ({data.purchaseSuggestions.length})</h2>
+              <h2 className="text-lg font-semibold mb-3 text-gray-800">{t('dashboard.productsToBuy', { count: data.purchaseSuggestions.length })}</h2>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
                 {data.purchaseSuggestions.slice(0, 5).map((s) => (
                   <div key={s.productId} className="text-sm text-blue-700 flex justify-between">
-                    <span>{s.name}</span>
-                    <span>{s.suggestedQuantity} units (Rs {s.estimatedCost.toFixed(0)})</span>
+                    <span>{s.name} — {s.variantName}</span>
+                    <span>{s.suggestedQuantity} {t('common.units')} (Rs {s.estimatedCost.toFixed(0)})</span>
                   </div>
                 ))}
-                {data.purchaseSuggestions.length > 5 && <p className="text-sm text-blue-700">...and {data.purchaseSuggestions.length - 5} more</p>}
+                {data.purchaseSuggestions.length > 5 && <p className="text-sm text-blue-700">{t('dashboard.andMore', { count: data.purchaseSuggestions.length - 5 })}</p>}
               </div>
             </div>
           )}

@@ -2,7 +2,7 @@
 
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { products, purchases, sales, dailyClose } from '@/lib/db/schema'
+import { products, productVariants, purchases, sales, dailyClose } from '@/lib/db/schema'
 import { eq, and, gte, lte, sql, desc, sum } from 'drizzle-orm'
 import { headers } from 'next/headers'
 
@@ -64,17 +64,17 @@ async function getDashboardStatsInner() {
     // Total inventory value
     const inventoryValue = await db
       .select({
-        total: sql`SUM(${products.current_stock})`,
+        total: sql`SUM(${productVariants.currentStock})`,
       })
-      .from(products)
-      .where(eq(products.userId, userId))
+      .from(productVariants)
+      .where(eq(productVariants.userId, userId))
 
     // Low stock products
     const lowStockProducts = await db
       .select()
-      .from(products)
-      .where(and(eq(products.userId, userId)))
-      .then((p) => p.filter((prod) => prod.current_stock < 10))
+      .from(productVariants)
+      .where(and(eq(productVariants.userId, userId), eq(productVariants.activeStatus, true)))
+      .then((items) => items.filter((item) => item.currentStock <= item.minimumStock))
 
     return {
       totalProducts: Number(productCount[0]?.count || 0),
@@ -98,6 +98,8 @@ export async function getDailySalesReport(date: Date) {
   return db
     .select({
       productName: products.name,
+      variantName: productVariants.variantName,
+      variantSize: productVariants.size,
       quantity: sales.quantity,
       sellingPrice: sales.sellingPrice,
       totalAmount: sales.totalAmount,
@@ -105,6 +107,7 @@ export async function getDailySalesReport(date: Date) {
     })
     .from(sales)
     .innerJoin(products, eq(sales.productId, products.id))
+    .innerJoin(productVariants, eq(sales.variantId, productVariants.id))
     .where(
       and(
         eq(sales.userId, userId),

@@ -10,9 +10,10 @@ export async function POST(req: Request) {
 
     if (format === 'csv' || format === 'excel') {
       // build CSV
-      const header = ['Product', 'Quantity', 'PricePerUnit', 'Total', 'Date']
+      const header = ['Product', 'Type', 'Quantity', 'PricePerUnit', 'Total', 'Date']
       const rows = (data || []).map((r: any) => [
         `"${String(r.productName || '').replace(/"/g, '""')}"`,
+        `"${String(r.variantName || '').replace(/"/g, '""')}"`,
         String(r.quantity || ''),
         String(r.sellingPrice || ''),
         String(r.totalAmount || ''),

@@ -6,6 +6,8 @@ import { getDashboardStats } from '@/app/actions/analytics'
 
 type ReportRow = {
   productName: string
+  variantName: string
+  variantSize?: string | null
   quantity: number
   sellingPrice: string
   totalAmount: string
@@ -140,6 +142,7 @@ export default function ReportsPage() {
 
       const data = rows.map((r) => ({
         Product: r.productName,
+        Type: r.variantName,
         Quantity: r.quantity,
         PricePerUnit: r.sellingPrice,
         Total: r.totalAmount,
@@ -210,7 +213,7 @@ export default function ReportsPage() {
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-green-50 rounded">
             <span className="text-gray-700">{t('reports.totalSalesQuantity')}</span>
-            <span className="font-bold text-green-600">{summary.totalSalesQuantity} units</span>
+            <span className="font-bold text-green-600">{summary.totalSalesQuantity} {t('common.units')}</span>
           </div>
           <div className="flex justify-between items-center p-3 bg-green-50 rounded">
             <span className="text-gray-700">{t('reports.totalRevenue')}</span>
@@ -229,11 +232,11 @@ export default function ReportsPage() {
         <div className="space-y-3">
           <div className="flex justify-between items-center p-3 bg-purple-50 rounded">
             <span className="text-gray-700">{t('reports.totalProducts')}</span>
-            <span className="font-bold text-purple-600">{summary.totalProducts} items</span>
+            <span className="font-bold text-purple-600">{summary.totalProducts} {t('common.items')}</span>
           </div>
           <div className="flex justify-between items-center p-3 bg-orange-50 rounded">
             <span className="text-gray-700">{t('reports.lowStockItems')}</span>
-            <span className="font-bold text-orange-600">{summary.lowStockItems} items</span>
+            <span className="font-bold text-orange-600">{summary.lowStockItems} {t('common.items')}</span>
           </div>
         </div>
       </div>
@@ -247,7 +250,7 @@ export default function ReportsPage() {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
             disabled={loadingReport}
           >
-            {loadingReport ? 'Loading...' : `🔍 ${t('reports.load')}`}
+            {loadingReport ? t('common.loading') : `🔍 ${t('reports.load')}`}
           </button>
 
           <button
@@ -263,7 +266,7 @@ export default function ReportsPage() {
             className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
             disabled={rows.length === 0}
           >
-            📊 Excel
+            📊 {t('reports.exportExcel')}
           </button>
         </div>
 
@@ -273,7 +276,7 @@ export default function ReportsPage() {
             className="w-full bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-3 px-4 rounded-lg transition-colors"
             disabled={rows.length === 0}
           >
-            📥 CSV
+            📥 {t('reports.exportCsv')}
           </button>
         </div>
 
@@ -285,7 +288,7 @@ export default function ReportsPage() {
             <div className="space-y-2">
               {rows.map((r, i) => (
                 <div key={i} className="p-2 bg-gray-50 rounded">
-                  <div className="font-medium">{r.productName}</div>
+                  <div className="font-medium">{r.productName} — {r.variantName}{r.variantSize ? ` (${r.variantSize})` : ''}</div>
                   <div className="text-sm text-gray-600">{r.quantity} × {r.sellingPrice} = {r.totalAmount}</div>
                 </div>
               ))}

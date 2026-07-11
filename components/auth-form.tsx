@@ -79,7 +79,7 @@ export function AuthForm({ mode, authDisabledMessage }: AuthFormProps) {
   return (
     <main className="min-h-svh bg-background flex items-center justify-center px-4">
       {loading && (
-        <LoadingScreen message={isSignUp ? 'Creating account...' : 'Signing in...'} />
+        <LoadingScreen message={isSignUp ? t('auth.creatingAccount') : t('auth.signingIn')} />
       )}
       <Card className="w-full max-w-sm p-6">
         <div className="mb-6">
@@ -94,7 +94,7 @@ export function AuthForm({ mode, authDisabledMessage }: AuthFormProps) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {isSignUp && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('auth.name')}</Label>
               <Input
                 id="name"
                 value={name}

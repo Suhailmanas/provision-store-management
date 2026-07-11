@@ -29,9 +29,11 @@ export default async function ProductEditPage({ params }: Props) {
         product={{
           name: product.name,
           category: product.category ?? '',
-          unit: product.unit,
-          opening_stock: product.opening_stock,
-          current_stock: product.current_stock,
+          supplierId: product.supplierId ?? '',
+          fastMoving: product.fastMoving,
+          trackExpiry: product.trackExpiry,
+          active: product.active,
+          types: product.types.map((type) => ({ ...type, buyingPricePerUnit: Number(type.buyingPricePerUnit), sellingPricePerUnit: Number(type.sellingPricePerUnit) })),
         }}
       />
     </PageShell>
